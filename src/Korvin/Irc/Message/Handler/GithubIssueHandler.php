@@ -1,6 +1,7 @@
 <?php
 namespace Korvin\Irc\Message\Handler;
 
+use Korvin\Irc\Connection\Connection;
 use Korvin\Irc\Message\Message;
 use Korvin\Irc\Message\SendableMessage;
 
@@ -24,6 +25,20 @@ class GithubIssueHandler implements HandlerInterface
         return $string;
     }
 
+    protected function reportIssue(Connection $connection, array $issue, $to)
+    {
+        $title = $this->truncate($issue['title'], 64);
+        $response_string = "#{$issue['number']}: $title ({$issue['html_url']})";
+
+        $response = new SendableMessage($connection);
+        $response->setType('PRIVMSG');
+        $response->setArguments(
+            array(
+                $to,
+                $response_string));
+        $response->send();
+    }
+
     public function handleMessage(Message $message)
     {
         if ($message->getType() === 'PRIVMSG') {
@@ -39,21 +54,16 @@ class GithubIssueHandler implements HandlerInterface
                         try {
                             $issue = $this->client->issue()->show('concrete5', 'concrete5-5.7.0', $match);
                             if ($issue) {
-
-                                $title = $this->truncate($issue['title'], 64);
-                                $response_string = "#$match: $title ({$issue['html_url']})";
-
-                                $response = new SendableMessage($message->getConnection());
-                                $response->setType('PRIVMSG');
-                                $response->setArguments(
-                                    array(
-                                        $to,
-                                        $response_string));
-                                $response->send();
+                                $this->reportIssue($message->getConnection(), $issue, $to);
                             }
                         } catch (\Exception $e) {
                         };
                     }
+                }
+
+                if (strtolower($string) === '$roulette' || strtolower($string) === '$r') {
+                    $issues = $this->client->issues()->all('concrete5', 'concrete5-5.7.0');
+                    $this->reportIssue($message->getConnection(), $issues[array_rand($issues)], $to);
                 }
             }
         }

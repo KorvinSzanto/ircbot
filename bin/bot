@@ -12,7 +12,7 @@ $handler->registerHandler('\Korvin\Irc\Message\Handler\PingHandler');
 
 $client = new \Github\Client();
 $client->getHttpClient()->client->setSslVerification(false, false);
-$client->authenticate('YOUR_CLIENT_ID_GOES_HERE', \Github\Client::AUTH_URL_TOKEN);
+$client->authenticate('', \Github\Client::AUTH_URL_TOKEN);
 
 $handler->registerHandler(new GithubIssueHandler($client));
 
