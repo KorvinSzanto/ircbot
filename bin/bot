@@ -1,0 +1,20 @@
+<?php
+use Korvin\Irc\Connection\Connection;
+use Korvin\Irc\Message\Handler\GithubIssueHandler;
+use Korvin\Irc\Message\Handler\HandlerManager;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+$handler = new HandlerManager();
+
+$handler->registerHandler('\Korvin\Irc\Message\Handler\LogHandler');
+$handler->registerHandler('\Korvin\Irc\Message\Handler\PingHandler');
+
+$client = new \Github\Client();
+$client->getHttpClient()->client->setSslVerification(false, false);
+$client->authenticate('YOUR_CLIENT_ID_GOES_HERE', \Github\Client::AUTH_URL_TOKEN);
+
+$handler->registerHandler(new GithubIssueHandler($client));
+
+$connection = new Connection($handler, 'irc.freenode.org', 6667, 'derrr', '#concrete5');
+$connection->connect();
