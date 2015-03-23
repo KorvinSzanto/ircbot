@@ -63,6 +63,11 @@ class Connection
             $this->manager->handleMessage($message);
         }
 
+        if (feof($this->socket) === true) {
+            echo 'Socket is closed' . PHP_EOL;
+            $this->connected = false;
+        }
+
         if ($this->connected) {
             $this->connection();
         }
